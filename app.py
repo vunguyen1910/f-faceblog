@@ -135,14 +135,14 @@ def single_post(id):
             db.session.delete(post)
             db.session.commit()
             return redirect(url_for('home'))
-        elif action == 'udpate':
+        elif action == 'update':
             post.body = request.form['update-text']
             db.session.commit()
             return redirect(url_for('single_post',id=id))
         elif action == 'edit':
             return render_template('views/single_post.html', post = post, action=action)
     if not action:
-        action = 'view'    
+        action = 'view'
     return render_template('views/single_post.html', post = post, action=action)
 
 if __name__ == "__main__":
