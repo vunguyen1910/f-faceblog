@@ -39,6 +39,9 @@
         <form method="POST" action="{{url_for('single_post', id=post.id, action='delete')}}">
             <button class='btn btn-link'>Delete</button>
         </form>
+        <form method="POST" action="{{url_for('single_post', id=post.id, action='view')}}">
+            <button class='btn btn-link'>Comment</button>
+        </form>
         {% else %}
 
         {% endif %}

@@ -144,6 +144,5 @@ def single_post(id):
     if not action:
         action = 'view'
     return render_template('views/single_post.html', post = post, action=action)
-
 if __name__ == "__main__":
     app.run(debug = True)
