@@ -34,6 +34,7 @@
         </form>
     </div>
     <div class='posts-container'>
+      <h3>Comment</h3>
       {% for comment in comments %}
           {% if comment.post_id == post.id %}
             <pre>{{comment.body | safe}}</pre>

@@ -31,20 +31,21 @@
       <h5 class="post-owner">{{post.author.name}}</h5>
       <small style="font-style: italic; font-weight: 200;">{{post.created_at}}</small>
       <pre>{{post.body | safe}}</pre>
-      <div class='single-post-footer'>
-        {% if post.author.id == current_user.id %}
-        <form method="POST" action="{{url_for('single_post', id=post.id, action='edit')}}">
-          <button class='btn btn-link'>Edit</button>
-        </form>
-        <form method="POST" action="{{url_for('single_post', id=post.id, action='delete')}}">
-            <button class='btn btn-link'>Delete</button>
-        </form>
-        <form method="POST" action="{{url_for('single_post', id=post.id, action='view')}}">
+      {% if current_user.is_authenticated %}
+        <form method="POST" action="{{url_for('single_post', id=post.id)}}">
             <button class='btn btn-link'>Comment</button>
         </form>
-        {% else %}
-
-        {% endif %}
+      {% endif %}
+        <div class='single-post-footer'>
+          {% if post.author.id == current_user.id %}
+            <form method="POST" action="{{url_for('single_post', id=post.id, action='edit')}}">
+              <button class='btn btn-link'>Edit</button>
+            </form>
+            <form method="POST" action="{{url_for('single_post', id=post.id, action='delete')}}">
+                <button class='btn btn-link'>Delete</button>
+            </form>
+          {% else %}
+          {% endif %}
       </div>
     </div>
     {% endfor %}
