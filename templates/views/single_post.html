@@ -37,6 +37,8 @@
       <h3>Comment</h3>
       {% for comment in comments %}
           {% if comment.post_id == post.id %}
+            <h5 class="post-owner">{{comment.author.name}}</h5>
+            <small style="font-style: italic; font-weight: 200;">{{comment.created_at}}</small>
             <pre>{{comment.body | safe}}</pre>
           {% else %}
           {% endif %}

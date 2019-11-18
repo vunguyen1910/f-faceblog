@@ -131,6 +131,8 @@ def single_post(id):
     action = request.args.get('action')
     post = Post.query.get(id)
     comments = Comment.query.all()
+    for comment in comments:
+        comment.author = User.query.filter_by(id = comment.user_id).first()
     if not post:
         flash('Post not found', 'warning')
         return redirect(url_for('home'))
@@ -149,5 +151,6 @@ def single_post(id):
     if not action:
         action = 'view'
     return render_template('views/single_post.html', post = post, action=action, comments = comments)
+
 if __name__ == "__main__":
     app.run(debug = True)
