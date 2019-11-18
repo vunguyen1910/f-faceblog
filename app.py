@@ -136,9 +136,6 @@ def single_post(id):
         return redirect(url_for('home'))
     post.author = User.query.get(post.user_id)
     if request.method=="POST":
-        if post.user_id != current_user.id:
-            flash('not allow to do this', 'danger')
-            return redirect(url_for('home'))
         if action == 'delete':
             db.session.delete(post)
             db.session.commit()
