@@ -125,9 +125,8 @@ def create_comment(id_post):
         new_comment = Comment(user_id = current_user.id, post_id = id_post, body = request.form['bodyComment'])
         db.session.add(new_comment)
         db.session.commit()
-        return redirect(url_for('home'))
+        return redirect(url_for("single_post", id = id_post))
 @app.route('/posts/<id>', methods=['POST', 'GET'])
-
 def single_post(id):
     action = request.args.get('action')
     post = Post.query.get(id)
