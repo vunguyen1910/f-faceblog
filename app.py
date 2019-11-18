@@ -126,14 +126,12 @@ def create_comment(id_post):
         db.session.add(new_comment)
         db.session.commit()
         return redirect(url_for('home'))
-
-
-
-
 @app.route('/posts/<id>', methods=['POST', 'GET'])
+
 def single_post(id):
     action = request.args.get('action')
     post = Post.query.get(id)
+    comments = Comment.query.all()
     if not post:
         flash('Post not found', 'warning')
         return redirect(url_for('home'))
@@ -154,6 +152,6 @@ def single_post(id):
             return render_template('views/single_post.html', post = post, action=action)
     if not action:
         action = 'view'
-    return render_template('views/single_post.html', post = post, action=action)
+    return render_template('views/single_post.html', post = post, action=action, comments = comments)
 if __name__ == "__main__":
     app.run(debug = True)

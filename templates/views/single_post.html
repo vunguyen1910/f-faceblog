@@ -32,7 +32,15 @@
             <button class='btn btn-primary' type='submit'>Comment</button>
           </div>
         </form>
-      </div>
+    </div>
+    <div class='posts-container'>
+      {% for comment in comments %}
+          {% if comment.post_id == post.id %}
+            <pre>{{comment.body | safe}}</pre>
+          {% else %}
+          {% endif %}
+      {% endfor %}
+    </div>
   {% else %}
   <div class='create-post-div'>
     <form method='POST' class='create-post-form' action="{{url_for('single_post', id=post.id, action="update")}}">
