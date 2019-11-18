@@ -5,10 +5,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.secret_key = 'something'
 login_manager = LoginManager(app)
-login_manager.login_view='root'
+login_manager.login_view = 'root'
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -24,6 +25,8 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 # create posts table
+
+
 class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
@@ -34,6 +37,8 @@ class Post(db.Model):
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
 # create comment table
+
+
 class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
@@ -43,11 +48,15 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
+
+
 db.create_all()
+
 
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(id)
+
 
 @app.route('/', methods=['POST', 'GET'])
 def root():
@@ -63,9 +72,10 @@ def root():
             flash(f'Welcome back {current_user.name}', 'success')
             return redirect(url_for('home'))
         flash('wrong password or email', 'warning')
-        return redirect(url_for('login'))
+        return redirect(url_for('root'))
 
     return render_template('views/index.html')
+
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -85,14 +95,55 @@ def register():
         return redirect(url_for('home'))
     return render_template('views/register.html')
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('root'))
+
+
 @app.route('/home')
 def home():
-    return render_template('views/home.html')
+    posts = Post.query.all()
+    for post in posts:
+        post.author = User.query.filter_by(id=post.user_id).first()
+    return render_template('views/home.html', posts=posts)
+@app.route('/posts', methods=['POST'])
+@login_required
+def create_post():
+    if request.method=='POST':
+        new_post = Post(body=request.form['body'],
+                user_id=current_user.id)
+        db.session.add(new_post)
+        db.session.commit()
+    return redirect(url_for('home'))
+
+@app.route('/posts/<id>', methods=['POST', 'GET'])
+def single_post(id):
+    action = request.args.get('action')
+    post = Post.query.get(id)
+    if not post:
+        flash('Post not found', 'warning')
+        return redirect(url_for('home'))
+    post.author = User.query.get(post.user_id)
+    if request.method=="POST":
+        if post.user_id != current_user.id:
+            flash('not allow to do this', 'danger')
+            return redirect(url_for('home'))
+    if action == 'delete':
+        db.session.delete(post)
+        db.session.commit()
+        return redirect(url_for('home'))
+    elif action == 'udpate':
+        post.body = request.form['body']
+        db.session.commit()
+        return redirect(url_for('single_post',id=id))
+    elif action == 'edit':
+        return render_template('views/single_post.html', post = post, action=action)
+    if not action:
+        action = 'view'    
+    return render_template('views/single_post.html', post = post, action=action)
 
 if __name__ == "__main__":
     app.run(debug = True)
