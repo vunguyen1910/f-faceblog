@@ -118,6 +118,17 @@ def create_post():
         db.session.add(new_post)
         db.session.commit()
     return redirect(url_for('home'))
+@app.route('/comment/<id_post>', methods=['POST'])
+@login_required
+def create_comment(id_post):
+    if request.method == "POST":
+        new_comment = Comment(user_id = current_user.id, post_id = id_post, body = request.form['bodyComment'])
+        db.session.add(new_comment)
+        db.session.commit()
+        return redirect(url_for('home'))
+
+
+
 
 @app.route('/posts/<id>', methods=['POST', 'GET'])
 def single_post(id):
