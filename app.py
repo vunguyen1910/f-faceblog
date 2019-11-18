@@ -131,16 +131,16 @@ def single_post(id):
         if post.user_id != current_user.id:
             flash('not allow to do this', 'danger')
             return redirect(url_for('home'))
-    if action == 'delete':
-        db.session.delete(post)
-        db.session.commit()
-        return redirect(url_for('home'))
-    elif action == 'udpate':
-        post.body = request.form['body']
-        db.session.commit()
-        return redirect(url_for('single_post',id=id))
-    elif action == 'edit':
-        return render_template('views/single_post.html', post = post, action=action)
+        if action == 'delete':
+            db.session.delete(post)
+            db.session.commit()
+            return redirect(url_for('home'))
+        elif action == 'udpate':
+            post.body = request.form['update-text']
+            db.session.commit()
+            return redirect(url_for('single_post',id=id))
+        elif action == 'edit':
+            return render_template('views/single_post.html', post = post, action=action)
     if not action:
         action = 'view'    
     return render_template('views/single_post.html', post = post, action=action)
