@@ -4,6 +4,7 @@ import os
 from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_required, login_user, logout_user, current_user
+from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -13,6 +14,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = 'something'
 login_manager = LoginManager(app)
 login_manager.login_view = 'root'
+migrate = Migrate(app, db)
 
 
 class User(UserMixin, db.Model):
@@ -22,14 +24,13 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     user_avata = db.Column(db.Text, nullable=True)
+    admin = db.Column(db.Boolean, default=False)
 
     def generate_password(self, password):
         self.password = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-# create posts table
-
 
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -40,9 +41,23 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
+    view_count = db.Column(db.Integer, default = 0)
+    flags = db.relationship('Flag', secondary='flags', lazy=True, backref='flagged_post')
+
+class Flag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    issue = db.Column(db.String, nullable=False)
+    post_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+
+flag_list = {'1' : "Stupid question" , '2' : "Sexual harrassment", '3' : "Phan Dong", '4' : "She's my ex"}
+
+flags = db.Table('flags', 
+    db.Column('flag_id', db.Integer, db.ForeignKey('flag.id'), primary_key=True),
+    db.Column('post_id', db.Integer, db.ForeignKey('posts.id'), primary_key=True)
+)
+
 # create comment table
-
-
 class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
@@ -52,10 +67,7 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), server_onupdate=db.func.now())
-
-
 db.create_all()
-
 
 @login_manager.user_loader
 def load_user(id):
@@ -113,6 +125,8 @@ def home():
     for post in posts:
         post.author = User.query.filter_by(id=post.user_id).first()
     return render_template('views/home.html', posts=posts)
+
+
 @app.route('/posts', methods=['POST'])
 @login_required
 def create_post():
@@ -122,6 +136,8 @@ def create_post():
         db.session.add(new_post)
         db.session.commit()
     return redirect(url_for('home'))
+
+
 @app.route('/comment/<id_post>', methods=['POST'])
 @login_required
 def create_comment(id_post):
@@ -130,11 +146,15 @@ def create_comment(id_post):
         db.session.add(new_comment)
         db.session.commit()
         return redirect(url_for("single_post", id = id_post))
+
+
 @app.route('/posts/<id>', methods=['POST', 'GET'])
 def single_post(id):
     action = request.args.get('action')
     post = Post.query.get(id)
     comments = Comment.query.all()
+    post.view_count += 1
+    db.session.commit()
     for comment in comments:
         comment.author = User.query.filter_by(id = comment.user_id).first()
     if not post:
@@ -155,6 +175,29 @@ def single_post(id):
     if not action:
         action = 'view'
     return render_template('views/single_post.html', post = post, action=action, comments = comments)
+
+
+@app.route('/posts/flagged/<id>', methods=['POST', 'GET'])
+def flagged_post(id):
+    post = Post.query.get(id)
+    user = current_user
+    if request.method == "POST":
+        new_issue = flag_list[request.form.getlist("issue")[0]]
+        new_flag = Flag(issue=new_issue, post_id=id, user_id=current_user.id)
+        post.flags.append(new_flag)
+        db.session.commit()
+        flash('sorry for make you see this', 'warning')
+        return redirect(url_for('single_post', id=id))
+    return redirect(url_for('single_post', id=id))
+
+@app.route('/flagged_posts', methods=['POST', 'GET'])
+def flagged_posts():
+    # flag = Flag.query.get(1)
+    # print(flag.flagged_post)
+    # posts = flags.query('flags')
+    return "OK"
+
+
 
 if __name__ == "__main__":
     app.run(debug = True)
