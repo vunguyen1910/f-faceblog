@@ -12,6 +12,11 @@
       </ul>
     </div>
     <ul class="navbar-nav mr-auto">
+      {% if current_user.admin == 1 %}
+      <li class="nav-item">
+          <a class="nav-link" href="{{url_for("flagged_posts")}}">Flagged!</a>
+      </li>
+      {% endif %}
       {% if current_user.is_authenticated %}
       <li class="nav-item">
         <a class="nav-link" href="/">{{ current_user.name}}</a>
