@@ -2,48 +2,98 @@
 
 {% block content %}
 <div class='container'>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
-    {% if messages %} {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
-      <button
-        type="button"
-        class="close"
-        data-dismiss="alert"
-        aria-label="Close"
-      >
-        <span aria-hidden="true">&times;</span>
-      </button>
-      <!-- <strong>Title</strong> -->
-      {{ message }}
-    </div>
-    {% endfor %} {% endif %} {% endwith %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+  {% if messages %} {% for category, message in messages %}
+  <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <!-- <strong>Title</strong> -->
+    {{ message }}
+  </div>
+  {% endfor %} {% endif %} {% endwith %}
+
   <h2>{{post.author.name}}</h2>
-  <small>{{post.created_at}}</small>
+  <button class="btn btn-danger" data-toggle="modal" data-target="#exampleModal">Report</button>
+  <div>
+    <small>{{post.created_at}}</small>
+    <small>Views: {{post.view_count}}</small>
+  </div>
   <pre>{{post.body}}</pre>
 
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Tell me why why why?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form method='POST' action="{{url_for('flagged_post', id=post.id)}}">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="issue" value="1" id="defaultCheck1">
+              <label class="form-check-label" for="defaultCheck1">
+                Stupid question
+              </label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="issue" value="2" id="defaultCheck1">
+              <label class="form-check-label" for="defaultCheck1">
+                Sexual Harrassment
+              </label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="issue" value="3" id="defaultCheck1">
+              <label class="form-check-label" for="defaultCheck1">
+                Phan dong
+              </label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="issue" value="4" id="defaultCheck1">
+              <label class="form-check-label" for="defaultCheck1">
+                She's my ex
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   {% if action == "view" %}
-    <div class='create-post-div'>
-        <form method='POST' class='create-post-form' action="{{url_for('create_comment', id_post=post.id)}}">
-          <textarea class='create-post-input' name='bodyComment' rows="5" autofocus
-            value="what's on your mind, {{ current_user.name}}?">
+  <div class='create-post-div'>
+    <form method='POST' class='create-post-form' action="{{url_for('create_comment', id_post=post.id)}}">
+      <textarea class='create-post-input' name='bodyComment' rows="5" autofocus
+        value="what's on your mind, {{ current_user.name}}?">
           </textarea>
-          <div style="width:100%; display:flex; justify-content:flex-end">
-            <button class='btn btn-primary' type='submit'>Comment</button>
-          </div>
-        </form>
-    </div>
-    <div class='posts-container'>
-      <h3>Comment</h3>
-      {% for comment in comments %}
-          {% if comment.post_id == post.id %}
-            <h5 class="post-owner">{{comment.author.name}}</h5>
-            <small style="font-style: italic; font-weight: 200;">{{comment.created_at}}</small>
-            <pre>{{comment.body | safe}}</pre>
-          {% else %}
-          {% endif %}
-      {% endfor %}
-    </div>
+      <div style="width:100%; display:flex; justify-content:flex-end">
+        <button class='btn btn-primary' type='submit'>Comment</button>
+      </div>
+    </form>
+  </div>
+  <div class='posts-container'>
+    <h3>Comment</h3>
+    {% for comment in comments %}
+    {% if comment.post_id == post.id %}
+    <h5 class="post-owner">{{comment.author.name}}</h5>
+    <small style="font-style: italic; font-weight: 200;">{{comment.created_at}}</small>
+    <pre>{{comment.body | safe}}</pre>
+    {% else %}
+    {% endif %}
+    {% endfor %}
+  </div>
   {% else %}
   <div class='create-post-div'>
     <form method='POST' class='create-post-form' action="{{url_for('single_post', id=post.id, action="update")}}">
