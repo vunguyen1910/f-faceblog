@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_required, login_user, logout_user, current_user
@@ -5,7 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI']= os.environ.get('LOCAL_PSQL') or os.environ.get('DATABASE_URL')
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = 'something'
 login_manager = LoginManager(app)
 login_manager.login_view = 'root'
